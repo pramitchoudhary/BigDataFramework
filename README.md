@@ -1,5 +1,5 @@
-Spark-OpenTSDB
+BigData framework
 ==============
 
-OpenTSDB binding with Spark
-Generic code for the same will be up soon. 
+This project contains all ideas and work around the BigData framework
+out there.
