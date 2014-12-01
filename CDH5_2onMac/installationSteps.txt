@@ -1,0 +1,31 @@
+This document list down the steps  needed for installing CDH5.2 on Mac
+One can always get the source code, build and setup the environment
+but doing so for many projects is takes a lot of work. More-over when working on
+OpenSource projects one works on 2-3 projects at a time, so having the basic stuff working
+as its suppose to be, becomes important.
+
+Iternaries taken care as a part of this document
+* Hadoop
+    
+* Hbase
+ 
+Dependencies:
+Have JDK1.7 installed on your Mac. If not installed, use
+jdk-7u67-macosx-x64.dmg ( Oracle Java download )
+
+CDH Components
+
+
+OpenTSDB
+brew install automake
+
+maven steps as listed here:
+link: http://maven.apache.org/download.cgi
+1. curl -O http://www.trieuvan.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz
+   
+Spark
+mvn -Pyarn-alpha -Dhadoop.version=2.5.0-cdh5.2.0 -DskipTests clean package
+
+Reference blogs:
+1. http://blog.cloudera.com/blog/2014/09/how-to-install-cdh-on-mac-osx-10-9-mavericks/
+   
