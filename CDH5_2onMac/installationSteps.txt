@@ -16,6 +16,33 @@ jdk-7u67-macosx-x64.dmg ( Oracle Java download )
 CDH Components
 
 
+
+FAQ:
+1. Error "Exception from container-launch" 
+>> This happens because of a syntactical issue, in which the hadoop-config.sh gets rendered on Mac.
+   Execute the following:
+    - find . -name hadoop-config.sh
+    - Change the following,
+    Original ->
+        "
+        if [ "Darwin" == "$(uname -s)" ]; then
+       if [ -x /usr/libexec/java_home ]; then
+           export JAVA_HOME=($(/usr/libexec/java_home))
+       else
+           export JAVA_HOME=(/Library/Java/Home)
+       fi
+   fi"
+   
+   Changed ->
+   "if [ "Darwin" == "$(uname -s)" ]; then
+       if [ -x /usr/libexec/java_home ]; then
+           export JAVA_HOME=$(/usr/libexec/java_home)
+       else
+           export JAVA_HOME=/Library/Java/Home
+       fi
+   fi
+    Change is needed in setting the JAVA_HOME path, remove the bracket around the paths defined.
+
 OpenTSDB
 brew install automake
 
