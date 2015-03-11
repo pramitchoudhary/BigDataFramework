@@ -21,6 +21,7 @@ Use the following link to access the CDH repo: http://archive.cloudera.com/cdh5/
 * hbase-0.98.6-cdh5.3.0
 * hive-0.13.1-cdh5.3.0
 * spark-1.2.0-cdh5.3.0
+  1. Create an empty RELEASE file and place it under ../cloudera/spark-1.2.0-cdh5.3.0/
 
 
 FAQ:
@@ -48,6 +49,9 @@ FAQ:
        fi
    fi
     Change is needed in setting the JAVA_HOME path, remove the bracket around the paths defined.
+    
+2. Error related to running Spark
+
 
 OpenTSDB
 brew install automake
