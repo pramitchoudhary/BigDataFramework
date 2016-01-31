@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.recommendation.engine</groupId>
+    <artifactId>user-item</artifactId>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+    <name>"User-item-recommender"</name>
+
+
+    <distributionManagement>
+    </distributionManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <junit.version>4.11</junit.version>
+        <scallop.version>0.9.5</scallop.version>
+        <scala.version>2.10.5</scala.version>
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-assembly-plugin.version>2.4.1</maven-assembly-plugin.version>
+        <maven-scala-plugin.version>2.15.2</maven-scala-plugin.version>
+        <spark.version>1.3.1</spark.version>
+        <scala.major.version>2.10</scala.major.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.17</version>
+                <executions>
+                    <execution>
+                        <id>surefire-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <argLine>-Xms512m -Xmx6096m -XX:MaxPermSize=256m</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-ban-duplicate-classes</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banDuplicateClasses>
+                                    <ignoreClasses>
+                                        <!-- scopt conflicts with itself -->
+                                        <ignoreClass>scopt/*</ignoreClass>
+
+                                        <!-- All of these are conflicts within the Spark libs -->
+                                        <ignoreClass>javax/servlet/*</ignoreClass>
+                                        <ignoreClass>javax/transaction/*</ignoreClass>
+                                        <ignoreClass>org/apache/commons/collections/*</ignoreClass>
+                                        <ignoreClass>org/apache/commons/beanutils/*</ignoreClass>
+                                        <ignoreClass>com/esotericsoftware/minlog/Log*</ignoreClass>
+                                        <ignoreClass>org/objenesis/*</ignoreClass>
+                                        <ignoreClass>javax/activation/*</ignoreClass>
+                                        <ignoreClass>com/esotericsoftware/reflectasm/*</ignoreClass>
+                                        <ignoreClass>com/google/common/base/Optional*</ignoreClass>
+                                        <ignoreClass>com/google/common/base/Absent</ignoreClass>
+                                        <ignoreClass>com/google/common/base/Present</ignoreClass>
+                                        <ignoreClass>org/apache/hadoop/yarn/*</ignoreClass>
+                                        <ignoreClass>org/apache/spark/unused/UnusedStubClass</ignoreClass>
+                                        <ignoreClass>com/eharmony/aloha/score/SchemaScores*</ignoreClass>
+                                        <ignoreClass>org/aopalliance/*</ignoreClass>
+                                        <ignoreClass>javax/inject/*</ignoreClass>
+                                        <ignoreClass>javax/ws/rs/*</ignoreClass>
+                                        <ignoreClass>javax/annotation/*</ignoreClass>
+                                    </ignoreClasses>
+                                    <findAllDuplicates>true</findAllDuplicates>
+                                </banDuplicateClasses>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>enforce-ban-version-downgrades</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireUpperBoundDeps />
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.0-alpha-3</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.3</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <!--
+                Trick to differentiate maven 2.x and maven 3.x.
+
+                This employs that the basedir expression is only recognized by Maven 3.x (see MNG-2363)
+
+                http://maven.apache.org/plugins/maven-site-plugin/maven-3.html#\
+                Using_maven-site-plugin_2.x_with_Maven_2_and_maven-site-plugin_3.x_with_Maven_3
+            -->
+            <id>maven-2</id>
+            <activation>
+                <file>
+                    <missing>${basedir}</missing>
+                </file>
+            </activation>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.scala-tools</groupId>
+                            <artifactId>maven-scala-plugin</artifactId>
+                            <version>2.15.2</version>
+                            <configuration>
+                                <scalaVersion>${scala.version}</scalaVersion>
+                                <verbose>true</verbose>
+                                <failOnMultipleScalaVersions>true</failOnMultipleScalaVersions>
+                                <args>
+                                    <arg>-target:jvm-${java.version}</arg>
+                                    <arg>-feature</arg>
+                                    <arg>-deprecation</arg>
+                                    <arg>-Ycheck:jvm</arg>
+                                    <arg>-Ywarn-all</arg>
+                                    <arg>-unchecked</arg>
+                                </args>
+                                <jvmArgs>
+                                </jvmArgs>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <!--
+                                Normal compile phase because there is no java in the src/main directory.  If there was a
+                                java subdirectory, then change the phase to process-resources.  Additionally, might need to
+                                add the goal add-source.
+                                -->
+                                <id>scala-compile</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+
+                            <!-- Maven Phase is changed here because we have mixed java / scala in the test directory. -->
+                            <execution>
+                                <id>scala-test-compile</id>
+                                <phase>process-test-resources</phase>
+                                <goals><goal>testCompile</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                        <version>2.15.2</version>
+                    </plugin>
+                </plugins>
+            </reporting>
+        </profile>
+    </profiles>
+</project>
