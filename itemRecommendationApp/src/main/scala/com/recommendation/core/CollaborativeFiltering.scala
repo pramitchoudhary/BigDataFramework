@@ -8,7 +8,7 @@ import scopt.OptionParser
 
 case class BuyerAffinity(userId:Long, itemId:Long, affinity:Double)
 
-object CollaborativeFiltering extends Logging with Serializable{
+  object CollaborativeFiltering extends Logging {
   case class Params(inputFile: String = null, choice: Double = 0.0)
 
   def main(args: Array[String]) {
@@ -25,11 +25,15 @@ object CollaborativeFiltering extends Logging with Serializable{
         .action ((x, c) => c.copy (choice = x))
       note (
         """
-          |Example:
+          |Usage:
+          | The current implementation supports two forms of Collaborative Filtering
+          | 1. Brute Force
+          | 2. Similarity using the DIMSUM sampling algorithm
+          | Reference: http://arxiv.org/pdf/1206.2082v4.pdf
           |
-          | .spark-submit --num-executors 1 --executor-cores 1 --executor-memory 2g --driver-memory 2g
+          | .spark-submit --num-executors 1 --executor-cores 1 --executor-memory 1g --driver-memory 2g
           | --class com.recommendation.core.CollaborativeFiltering --master local[*]
-          | user-item-0.0.1-shaded.jar ../dataset.txt
+          | user-item-0.0.1-shaded.jar --input_file ../dataset.txt --threshold 0.5
         """.stripMargin)
     }
 
@@ -46,8 +50,8 @@ object CollaborativeFiltering extends Logging with Serializable{
 
     val data = sc.textFile(params.inputFile)
     data.cache()
-    logInfo("Stats about the data:")
-    logInfo(s"Number of lines read: ${data.count()}")
+    logDebug("Stats about the data:")
+    logDebug(s"Number of lines read: ${data.count()}")
 
     val userToItem = data.map(_.split("\t").toSeq)
 
@@ -59,7 +63,7 @@ object CollaborativeFiltering extends Logging with Serializable{
       case BuyerAffinity(userId, itemId, affinity) => MatrixEntry(userId, itemId, affinity)
     })
 
-    logInfo("Computing item-item Similarity...")
+    logDebug("Computing item-item Similarity...")
     val itemSimilarities = if(params.choice > 0.0) userItemMatrix.toRowMatrix.columnSimilarities(params.choice)
     else userItemMatrix.toRowMatrix.columnSimilarities()
 
@@ -67,7 +71,7 @@ object CollaborativeFiltering extends Logging with Serializable{
       case MatrixEntry(item1, item2, cosineSimilarity) => ((item1, item2), cosineSimilarity)
     }
 
-    logInfo("Similarities computed...")
+    logDebug("Similarities computed...")
     // Display the results
     result.foreach{case(items, similarityScore) => println(items + "\t" + similarityScore)}
   }
